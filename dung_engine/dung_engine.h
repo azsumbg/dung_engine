@@ -87,7 +87,7 @@ namespace dll
 			float ex{ 0 };
 			float ey{ 0 };
 
-			PROTON(float _x, float _y, float _width = 1.0f, float _height = 1.0f);
+			PROTON(float _x = 0, float _y = 0, float _width = 1.0f, float _height = 1.0f);
 			virtual ~PROTON() {};
 
 			float GetWidth() const;
@@ -98,6 +98,26 @@ namespace dll
 
 			void SetEdges();
 			void NewDims(float new_width, float new_height);
+	};
+
+	class DUNGENGINE_API PROT_CONTAINER
+	{
+		private:
+			PROTON* m_ptr{ nullptr };
+			size_t max_size{ 0 };
+			size_t next_element{ 0 };
+
+		public:
+			explicit PROT_CONTAINER(size_t lenght);
+			~PROT_CONTAINER();
+
+			void push_back(PROTON& element);
+			void push_front(PROTON& element);
+			bool is_valid() const;
+			size_t size() const;
+
+			PROTON operator[](size_t index) const;
+			void operator()(size_t index, PROTON& element);
 	};
 
 	class DUNGENGINE_API BASE_ASSETS_CLASS :public PROTON
@@ -114,6 +134,45 @@ namespace dll
 			void SetFlag(int16_t which_flag);
 			void NullFlag(int16_t which_flag);
 	};
+
+	class DUNGENGINE_API BASE_CREATURE_CLASS :public PROTON
+	{
+		protected:
+			unsigned char type_flag{ 0 };
+			unsigned char obstacle_flag{ 0 };
+
+			float start_x{ 0 };
+			float start_y{ 0 };
+			float end_x{ 0 };
+			float end_y{ 0 };
+
+			float slope{ 0 };
+			float intercept{ 0 };
+
+			float speed{ 1.0f };
+
+			int frame_delay{ 0 };
+			int current_frame{ 0 };
+			int max_frames{ 0 };
+
+		public:
+
+			BASE_CREATURE_CLASS(unsigned char my_type, float first_x, float first_y);
+			virtual ~BASE_CREATURE_CLASS() {};
+
+			int GetFrame();
+			float Distance(POINT reference_point, POINT my_point);
+
+			virtual void Release() = 0;
+
+
+
+
+	};
+
+
+	typedef PROT_CONTAINER* Container;
+	typedef BASE_ASSETS_CLASS* asset_ptr;
 
 
 }

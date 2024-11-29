@@ -70,6 +70,46 @@ void dll::PROTON::NewDims(float new_width, float new_height)
 
 ///////////////////////////////////
 
+// PROT_CONTAINER_CLASS **************
+
+dll::PROT_CONTAINER::PROT_CONTAINER(size_t lenght) :max_size{ lenght }, m_ptr{ new PROTON[lenght] }
+{
+	next_element = 0;
+}
+dll::PROT_CONTAINER::~PROT_CONTAINER()
+{
+	if (m_ptr)delete[] m_ptr;
+}
+void dll::PROT_CONTAINER::push_back(PROTON& element)
+{
+	if (next_element < max_size)
+	{
+		*(m_ptr + next_element) = element;
+		++next_element;
+	}
+}
+void dll::PROT_CONTAINER::push_front(PROTON& element)
+{
+	*m_ptr = element;
+}
+bool dll::PROT_CONTAINER::is_valid() const
+{
+	return(max_size > 0);
+}
+size_t dll::PROT_CONTAINER::size() const
+{
+	return max_size;
+}
+dll::PROTON dll::PROT_CONTAINER::operator[](size_t index) const
+{
+	if (index < max_size)return *(m_ptr + index);
+	return PROTON{};
+}
+void dll::PROT_CONTAINER::operator()(size_t index, PROTON& element)
+{
+	if (index < max_size) *(m_ptr + index) = element;
+}
+
 // BASE_ASSETS_CLASS **************
 
 dll::BASE_ASSETS_CLASS::BASE_ASSETS_CLASS(int16_t _type, float where_x, float _where_y) :PROTON(where_x, _where_y)
