@@ -18,7 +18,6 @@ constexpr float scr_height{ 600.0f };
 constexpr float sky{ 50.0f };
 constexpr float ground{ 650.0f };
 
-
 // CREATURE FLAGS *************************************
 
 constexpr unsigned char evil1_flag{ 0b00000001 };
@@ -155,24 +154,34 @@ namespace dll
 			int current_frame{ 0 };
 			int max_frames{ 0 };
 
+			int strenght{ 0 };
+			int attack_delay{ 0 };
+
+			void SetLineInfo(float _end_x, float _end_y);
+
 		public:
+			int lifes{ 0 };
+
 
 			BASE_CREATURE_CLASS(unsigned char my_type, float first_x, float first_y);
 			virtual ~BASE_CREATURE_CLASS() {};
 
 			int GetFrame();
+			int Attack();
 			float Distance(POINT reference_point, POINT my_point);
 
+			unsigned char GetObstacleFlag() const;
+
 			virtual void Release() = 0;
-
-
-
-
+			virtual void Move(float gear, PROT_CONTAINER& Obstacles);
+			virtual void Detour(float gear);
 	};
 
 
 	typedef PROT_CONTAINER* Container;
 	typedef BASE_ASSETS_CLASS* asset_ptr;
+	typedef BASE_CREATURE_CLASS* creature_ptr;
 
-
+	extern DUNGENGINE_API asset_ptr AssetFactory(int16_t what, float _start_x, float _start_y);
+	extern DUNGENGINE_API creature_ptr CreatureFactory(unsigned char what, float _start_x, float _start_y);
 }
