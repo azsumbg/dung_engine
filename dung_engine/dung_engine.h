@@ -18,6 +18,8 @@ constexpr float scr_height{ 600.0f };
 constexpr float sky{ 50.0f };
 constexpr float ground{ 650.0f };
 
+enum class dirs { left = 0, down = 1, up = 2, right = 3, stop = 4 };
+
 // CREATURE FLAGS *************************************
 
 constexpr unsigned char evil1_flag{ 0b00000001 };
@@ -26,10 +28,10 @@ constexpr unsigned char evil3_flag{ 0b00000100 };
 constexpr unsigned char evil4_flag{ 0b00001000 };
 constexpr unsigned char evil5_flag{ 0b00010000 };
 
-constexpr unsigned char hero_flag{ 0b00000001 };
-constexpr unsigned char hero_club_flag{ 0b00000011 };
-constexpr unsigned char hero_axe_flag{ 0b00000101 };
-constexpr unsigned char hero_swoord_flag{ 0b00001001 };
+constexpr unsigned char hero_flag{ 0b10000001 };
+constexpr unsigned char hero_club_flag{ 0b10000011 };
+constexpr unsigned char hero_axe_flag{ 0b10000101 };
+constexpr unsigned char hero_sword_flag{ 0b10001001 };
 
 // OBJECT FLAGS ************************************
 
@@ -148,6 +150,9 @@ namespace dll
 			float slope{ 0 };
 			float intercept{ 0 };
 
+			bool hor_line = false;
+			bool vert_line = false;
+
 			float speed{ 1.0f };
 
 			int frame_delay{ 0 };
@@ -159,22 +164,27 @@ namespace dll
 
 			void SetLineInfo(float _end_x, float _end_y);
 
+			BASE_CREATURE_CLASS(unsigned char my_type, float first_x, float first_y);
+
 		public:
 			int lifes{ 0 };
+			dirs dir{ dirs::stop };
 
-
-			BASE_CREATURE_CLASS(unsigned char my_type, float first_x, float first_y);
 			virtual ~BASE_CREATURE_CLASS() {};
 
 			int GetFrame();
 			int Attack();
 			float Distance(POINT reference_point, POINT my_point);
 
+			void SetObstacleFlag(unsigned char which_flag);
 			unsigned char GetObstacleFlag() const;
+			unsigned char Move(float gear, PROT_CONTAINER& Obstacles, bool need_new_path = false,
+				float target_x = 0, float target_y = 0);
+			
+			void Release();
+			void Transform(unsigned char to_what);
 
-			virtual void Release() = 0;
-			virtual void Move(float gear, PROT_CONTAINER& Obstacles);
-			virtual void Detour(float gear);
+			friend DUNGENGINE_API BASE_CREATURE_CLASS* CreatureFactory(unsigned char what, float _start_x, float _start_y);
 	};
 
 
@@ -183,5 +193,5 @@ namespace dll
 	typedef BASE_CREATURE_CLASS* creature_ptr;
 
 	extern DUNGENGINE_API asset_ptr AssetFactory(int16_t what, float _start_x, float _start_y);
-	extern DUNGENGINE_API creature_ptr CreatureFactory(unsigned char what, float _start_x, float _start_y);
+	
 }

@@ -174,3 +174,408 @@ void dll::BASE_ASSETS_CLASS::NullFlag(int16_t which_flag)
 }
 
 /////////////////////////////////////
+
+// CREATURE_BASE_CLASS *****************
+
+dll::BASE_CREATURE_CLASS::BASE_CREATURE_CLASS(unsigned char my_type, float first_x, float first_y) :PROTON(start_x, start_y)
+{
+	type_flag = my_type;
+
+	switch (my_type)
+	{
+	case hero_flag:
+		NewDims(45.0f, 50.0f);
+		dir = dirs::right;
+		speed = 0.8f;
+		lifes = 200;
+		attack_delay = 200;
+		max_frames = 3;
+		frame_delay = 20;
+		strenght = 10;
+		break;
+
+	case evil1_flag:
+		NewDims(40.0f, 40.0f);
+		dir = dirs::left;
+		speed = 0.8f;
+		lifes = 100;
+		attack_delay = 300;
+		max_frames = 15;
+		frame_delay = 4;
+		strenght = 10;
+		break;
+
+	case evil2_flag:
+		NewDims(40.0f, 40.0f);
+		dir = dirs::left;
+		speed = 0.5f;
+		lifes = 110;
+		attack_delay = 350;
+		max_frames = 36;
+		frame_delay = 2;
+		strenght = 12;
+		break;
+
+	case evil3_flag:
+		NewDims(45.0f, 45.0f);
+		dir = dirs::left;
+		speed = 0.5f;
+		lifes = 140;
+		attack_delay = 320;
+		max_frames = 31;
+		frame_delay = 2;
+		strenght = 14;
+		break;
+
+	case evil4_flag:
+		NewDims(40.0f, 29.0f);
+		dir = dirs::left;
+		speed = 0.9f;
+		lifes = 90;
+		attack_delay = 200;
+		max_frames = 28;
+		frame_delay = 2;
+		strenght = 6;
+		break;
+
+	case evil5_flag:
+		NewDims(40.0f, 50.0f);
+		dir = dirs::left;
+		speed = 0.4f;
+		lifes = 150;
+		attack_delay = 400;
+		max_frames = 35;
+		frame_delay = 2;
+		strenght = 15;
+		break;
+	}
+}
+
+int dll::BASE_CREATURE_CLASS::GetFrame()
+{
+	frame_delay--;
+	if (frame_delay <= 0)
+	{
+		switch (type_flag)
+		{
+		case hero_flag:
+			frame_delay = 20;
+			break;
+
+		case evil1_flag:
+			frame_delay = 4;
+			break;
+
+		case evil2_flag:
+			frame_delay = 2;
+			break;
+
+		case evil3_flag:
+			frame_delay = 2;
+			break;
+
+		case evil4_flag:
+			frame_delay = 2;
+			break;
+
+		case evil5_flag:
+			frame_delay = 2;
+			break;
+		}
+		++current_frame;
+		if (current_frame > max_frames)current_frame = 0;
+	}
+	return current_frame;
+}
+int dll::BASE_CREATURE_CLASS::Attack()
+{
+	--attack_delay;
+	if (attack_delay <= 0)
+	{
+		switch (type_flag)
+		{
+		case hero_flag:
+			attack_delay = 200;
+			break;
+
+		case evil1_flag:
+			attack_delay = 300;
+			break;
+
+		case evil2_flag:
+			attack_delay = 350;
+			break;
+
+		case evil3_flag:
+			attack_delay = 320;
+			break;
+
+		case evil4_flag:
+			attack_delay = 200;
+			break;
+
+		case evil5_flag:
+			attack_delay = 400;
+			break;
+		}
+		return strenght;
+	}
+	return 0;
+}
+float dll::BASE_CREATURE_CLASS::Distance(POINT reference_point, POINT my_point)
+{
+	float a = static_cast<float>(pow((my_point.x - reference_point.x),2));
+	float b = static_cast<float>(pow((my_point.y - reference_point.y), 2));
+	return static_cast<float>(sqrt(a + b));
+}
+
+void dll::BASE_CREATURE_CLASS::SetLineInfo(float _end_x, float _end_y)
+{
+	hor_line = false;
+	vert_line = false;
+	
+	start_x = x;
+	start_y = y;
+	end_x = _end_x;
+	end_y = _end_y;
+	
+	if (end_x - start_x == 0)
+	{
+		vert_line = true;
+		return;
+	}
+	if (end_y - start_y == 0)
+	{
+		hor_line = true;
+		return;
+	}
+
+	slope = (end_y - start_y) / (end_x - start_x);
+
+	intercept = start_y - slope * start_x;
+}
+
+void dll::BASE_CREATURE_CLASS::SetObstacleFlag(unsigned char which_flag)
+{
+	obstacle_flag |= which_flag;
+}
+unsigned char dll::BASE_CREATURE_CLASS::GetObstacleFlag() const
+{
+	return obstacle_flag;
+}
+
+unsigned char dll::BASE_CREATURE_CLASS::Move(float gear, PROT_CONTAINER& Obstacles, bool need_new_path,
+	float target_x, float target_y)
+{
+	float current_speed = speed + gear / 10;
+
+	obstacle_flag = 0;
+
+	if (need_new_path)SetLineInfo(target_x, target_y);
+
+	if (hor_line)
+	{
+		if (start_x < end_x)
+		{
+			dir = dirs::left;
+			if (x - current_speed >= 0) x -= current_speed;
+			else SetObstacleFlag(left_obst_flag);
+		}
+		else if (start_x > end_x)
+		{
+			dir = dirs::right;
+			if (ex + current_speed <= scr_width) x += current_speed;
+			else SetObstacleFlag(left_obst_flag);
+		}
+		SetEdges();
+		return obstacle_flag;
+	}
+	if (vert_line)
+	{
+		if (start_y < end_y)y -= current_speed;
+		else if (start_y > end_y)y += current_speed;
+		SetEdges();
+		return obstacle_flag;
+	}
+
+	if (Obstacles.is_valid())
+	{
+		if (start_x > end_x)  //CHECK LEFT COLLISION 
+		{
+			if (x - current_speed >= 0)
+			{
+				for (int i = 0; i < Obstacles.size(); ++i)
+				{
+					float temp_x = x - current_speed;
+					float temp_ex = ex - current_speed;
+
+					if (!(temp_x >= Obstacles[i].ex || temp_ex <= Obstacles[i].x
+						|| y >= Obstacles[i].ey || ey <= Obstacles[i].y))
+					{
+						SetObstacleFlag(left_obst_flag);
+						break;
+					}
+				}
+			}
+			else SetObstacleFlag(left_obst_flag);
+		}
+		else if (start_x < end_x)  //CHECK RIGHT COLLISION 
+		{
+			if (ex + current_speed <= scr_width)
+			{
+				for (int i = 0; i < Obstacles.size(); ++i)
+				{
+					float temp_x = x + current_speed;
+					float temp_ex = ex + current_speed;
+
+					if (!(temp_x >= Obstacles[i].ex || temp_ex <= Obstacles[i].x
+						|| y >= Obstacles[i].ey || ey <= Obstacles[i].y))
+					{
+						SetObstacleFlag(right_obst_flag);
+						break;
+					}
+				}
+			}
+			else SetObstacleFlag(right_obst_flag);
+		}
+
+		if (start_y > end_y)  //CHECK TOP COLLISION 
+		{
+			if (y - current_speed >= sky)
+			{
+				for (int i = 0; i < Obstacles.size(); ++i)
+				{
+					float temp_y = y - current_speed;
+					float temp_ey = ey - current_speed;
+
+					if (!(x >= Obstacles[i].ex || ex <= Obstacles[i].x
+						|| temp_y >= Obstacles[i].ey || temp_ey <= Obstacles[i].y))
+					{
+						SetObstacleFlag(up_obst_flag);
+						break;
+					}
+				}
+			}
+			else SetObstacleFlag(up_obst_flag);
+		}
+		else if (start_x < end_x)  //CHECK BOTTOM COLLISION 
+		{
+			if (ey + current_speed <= ground)
+			{
+				for (int i = 0; i < Obstacles.size(); ++i)
+				{
+					float temp_y = y + current_speed;
+					float temp_ey = ey + current_speed;
+
+					if (!(x >= Obstacles[i].ex || ex <= Obstacles[i].x
+						|| temp_y >= Obstacles[i].ey || temp_ey <= Obstacles[i].y))
+					{
+						SetObstacleFlag(down_obst_flag);
+						break;
+					}
+				}
+			}
+			else SetObstacleFlag(down_obst_flag);
+		}
+	}
+
+	if (obstacle_flag)
+	{
+		if (type_flag != hero_flag && type_flag != hero_axe_flag && type_flag != hero_club_flag && type_flag != hero_sword_flag)
+		{
+			switch (obstacle_flag)
+			{
+			case left_obst_flag:
+				SetLineInfo(scr_width, y);
+				break;
+
+			case right_obst_flag:
+				SetLineInfo(0, y);
+				break;
+
+			case up_obst_flag:
+				SetLineInfo(x, ground);
+				break;
+
+			case down_obst_flag:
+				SetLineInfo(x, sky);
+				break;
+
+			case up_left_obst_flag:
+				SetLineInfo(scr_width, ground);
+				break;
+
+			case up_right_obst_flag:
+				SetLineInfo(0, ground);
+				break;
+
+			case down_left_obst_flag:
+				SetLineInfo(scr_width, sky);
+				break;
+
+			case down_right_obst_flag:
+				SetLineInfo(0, sky);
+				break;
+			}
+
+			if (start_x < end_x)x -= current_speed;
+			else if (start_x > end_x)x += current_speed;
+			y = x * slope + intercept;
+			SetEdges();
+		}
+	}
+	else
+	{
+		if (type_flag == hero_flag || type_flag == hero_axe_flag || type_flag == hero_club_flag || type_flag == hero_sword_flag)
+		{
+			if (start_x < end_x)x -= current_speed;
+			else if (start_x > end_x)x += current_speed;
+			y = x * slope + intercept;
+			SetEdges();
+		}
+	}
+
+	return obstacle_flag;
+}
+
+void dll::BASE_CREATURE_CLASS::Release()
+{
+	delete this;
+}
+
+void dll::BASE_CREATURE_CLASS::Transform(unsigned char to_what)
+{
+	if (type_flag != hero_flag && type_flag != hero_axe_flag && type_flag != hero_club_flag && type_flag != hero_sword_flag)
+		return;
+
+	type_flag = to_what;
+
+	switch (type_flag)
+	{
+	case hero_flag:
+		attack_delay = 200;
+		strenght = 10;
+		break;
+
+	case hero_club_flag:
+		attack_delay = 220;
+		strenght = 15;
+		break;
+
+	case hero_axe_flag:
+		attack_delay = 250;
+		strenght = 20;
+		break;
+
+	case hero_sword_flag:
+		attack_delay = 300;
+		strenght = 30;
+		break;
+	}
+}
+
+////////////////////////////////////////
+
+
+
+//FACTORIES ***************************
