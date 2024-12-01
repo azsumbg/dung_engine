@@ -576,6 +576,19 @@ void dll::BASE_CREATURE_CLASS::Transform(unsigned char to_what)
 
 ////////////////////////////////////////
 
-
-
 //FACTORIES ***************************
+
+dll::creature_ptr dll::CreatureFactory(unsigned char what, float _start_x, float _start_y)
+{
+	creature_ptr ret = nullptr;
+
+	ret = new BASE_CREATURE_CLASS(what, _start_x, _start_y);
+	return ret;
+}
+
+dll::asset_ptr dll::AssetFactory(int16_t what, float _start_x, float _start_y)
+{
+	asset_ptr ret = nullptr;
+	ret = new BASE_ASSETS_CLASS(what, _start_x, _start_y);
+	return ret;
+}

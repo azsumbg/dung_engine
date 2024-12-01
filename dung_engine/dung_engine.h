@@ -1,6 +1,6 @@
 #pragma once
 
-#ifdef DUNG_ENGINE_EXPORTS
+#ifdef DUNGENGINE_EXPORTS
 #define DUNGENGINE_API __declspec(dllexport)
 #else
 #define DUNGENGINE_API __declspec(dllimport)
@@ -184,14 +184,12 @@ namespace dll
 			void Release();
 			void Transform(unsigned char to_what);
 
-			friend DUNGENGINE_API BASE_CREATURE_CLASS* CreatureFactory(unsigned char what, float _start_x, float _start_y);
+			friend BASE_CREATURE_CLASS* CreatureFactory(unsigned char what, float _start_x, float _start_y);
 	};
-
 
 	typedef PROT_CONTAINER* Container;
 	typedef BASE_ASSETS_CLASS* asset_ptr;
 	typedef BASE_CREATURE_CLASS* creature_ptr;
 
-	extern DUNGENGINE_API asset_ptr AssetFactory(int16_t what, float _start_x, float _start_y);
-	
+	DUNGENGINE_API asset_ptr AssetFactory(int16_t what, float _start_x, float _start_y);
 }
