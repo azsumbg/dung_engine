@@ -160,6 +160,10 @@ dll::BASE_ASSETS_CLASS::BASE_ASSETS_CLASS(int16_t _type, float where_x, float _w
 	}
 }
 
+void dll::BASE_ASSETS_CLASS::Release()
+{
+	delete this;
+}
 bool dll::BASE_ASSETS_CLASS::CheckFlag(int16_t which_flag) const
 {
 	return (type_flag & which_flag);
@@ -177,7 +181,7 @@ void dll::BASE_ASSETS_CLASS::NullFlag(int16_t which_flag)
 
 // CREATURE_BASE_CLASS *****************
 
-dll::BASE_CREATURE_CLASS::BASE_CREATURE_CLASS(unsigned char my_type, float first_x, float first_y) :PROTON(start_x, start_y)
+dll::BASE_CREATURE_CLASS::BASE_CREATURE_CLASS(unsigned char my_type, float first_x, float first_y) :PROTON(first_x, first_y)
 {
 	type_flag = my_type;
 
@@ -190,7 +194,7 @@ dll::BASE_CREATURE_CLASS::BASE_CREATURE_CLASS(unsigned char my_type, float first
 		lifes = 200;
 		attack_delay = 200;
 		max_frames = 3;
-		frame_delay = 20;
+		frame_delay = 10;
 		strenght = 10;
 		break;
 
@@ -259,7 +263,7 @@ int dll::BASE_CREATURE_CLASS::GetFrame()
 		switch (type_flag)
 		{
 		case hero_flag:
-			frame_delay = 20;
+			frame_delay = 10;
 			break;
 
 		case evil1_flag:
@@ -355,6 +359,10 @@ void dll::BASE_CREATURE_CLASS::SetLineInfo(float _end_x, float _end_y)
 	intercept = start_y - slope * start_x;
 }
 
+bool dll::BASE_CREATURE_CLASS::CheckType(unsigned char which_type)
+{
+	return type_flag & which_type;
+}
 void dll::BASE_CREATURE_CLASS::SetObstacleFlag(unsigned char which_flag)
 {
 	obstacle_flag |= which_flag;
