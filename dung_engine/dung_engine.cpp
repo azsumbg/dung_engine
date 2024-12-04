@@ -381,166 +381,196 @@ unsigned char dll::BASE_CREATURE_CLASS::Move(float gear, PROT_CONTAINER& Obstacl
 
 	if (need_new_path)SetLineInfo(target_x, target_y);
 
-	if (hor_line)
-	{
-		if (start_x < end_x)
-		{
-			dir = dirs::left;
-			if (x - current_speed >= 0) x -= current_speed;
-			else SetObstacleFlag(left_obst_flag);
-		}
-		else if (start_x > end_x)
-		{
-			dir = dirs::right;
-			if (ex + current_speed <= scr_width) x += current_speed;
-			else SetObstacleFlag(left_obst_flag);
-		}
-		SetEdges();
-		return obstacle_flag;
-	}
-	if (vert_line)
-	{
-		if (start_y < end_y)y -= current_speed;
-		else if (start_y > end_y)y += current_speed;
-		SetEdges();
-		return obstacle_flag;
-	}
-
 	if (Obstacles.is_valid())
 	{
 		if (start_x > end_x)  //CHECK LEFT COLLISION 
 		{
-			if (x - current_speed >= 0)
+			for (int i = 0; i < Obstacles.size(); ++i)
 			{
-				for (int i = 0; i < Obstacles.size(); ++i)
-				{
-					float temp_x = x - current_speed;
-					float temp_ex = ex - current_speed;
+				float temp_x = x - current_speed;
+				float temp_ex = ex - current_speed;
 
-					if (!(temp_x >= Obstacles[i].ex || temp_ex <= Obstacles[i].x
-						|| y >= Obstacles[i].ey || ey <= Obstacles[i].y))
-					{
-						SetObstacleFlag(left_obst_flag);
-						break;
-					}
+				if (!(temp_x > Obstacles[i].ex || temp_ex < Obstacles[i].x
+					|| y > Obstacles[i].ey || ey < Obstacles[i].y))
+				{
+					SetObstacleFlag(left_obst_flag);
+					break;
 				}
 			}
-			else SetObstacleFlag(left_obst_flag);
+			if (x - current_speed <= 0) SetObstacleFlag(left_obst_flag);
 		}
 		else if (start_x < end_x)  //CHECK RIGHT COLLISION 
 		{
-			if (ex + current_speed <= scr_width)
+			for (int i = 0; i < Obstacles.size(); ++i)
 			{
-				for (int i = 0; i < Obstacles.size(); ++i)
-				{
-					float temp_x = x + current_speed;
-					float temp_ex = ex + current_speed;
+				float temp_x = x + current_speed;
+				float temp_ex = ex + current_speed;
 
-					if (!(temp_x >= Obstacles[i].ex || temp_ex <= Obstacles[i].x
-						|| y >= Obstacles[i].ey || ey <= Obstacles[i].y))
-					{
-						SetObstacleFlag(right_obst_flag);
-						break;
-					}
+				if (!(temp_x > Obstacles[i].ex || temp_ex < Obstacles[i].x
+					|| y > Obstacles[i].ey || ey < Obstacles[i].y))
+				{
+					SetObstacleFlag(right_obst_flag);
+					break;
 				}
 			}
-			else SetObstacleFlag(right_obst_flag);
+			if (ex + current_speed >= scr_width) SetObstacleFlag(right_obst_flag);
 		}
-
 		if (start_y > end_y)  //CHECK TOP COLLISION 
 		{
-			if (y - current_speed >= sky)
+			for (int i = 0; i < Obstacles.size(); ++i)
 			{
-				for (int i = 0; i < Obstacles.size(); ++i)
-				{
-					float temp_y = y - current_speed;
-					float temp_ey = ey - current_speed;
+				float temp_y = y - current_speed;
+				float temp_ey = ey - current_speed;
 
-					if (!(x >= Obstacles[i].ex || ex <= Obstacles[i].x
-						|| temp_y >= Obstacles[i].ey || temp_ey <= Obstacles[i].y))
-					{
-						SetObstacleFlag(up_obst_flag);
-						break;
-					}
+				if (!(x > Obstacles[i].ex || ex < Obstacles[i].x
+					|| temp_y > Obstacles[i].ey || temp_ey < Obstacles[i].y))
+				{
+					SetObstacleFlag(up_obst_flag);
+					break;
 				}
 			}
-			else SetObstacleFlag(up_obst_flag);
+			if (y - current_speed <= sky) SetObstacleFlag(up_obst_flag);
 		}
-		else if (start_x < end_x)  //CHECK BOTTOM COLLISION 
+		else if (start_y < end_y)  //CHECK BOTTOM COLLISION 
 		{
-			if (ey + current_speed <= ground)
+			for (int i = 0; i < Obstacles.size(); ++i)
 			{
-				for (int i = 0; i < Obstacles.size(); ++i)
-				{
-					float temp_y = y + current_speed;
-					float temp_ey = ey + current_speed;
+				float temp_y = y + current_speed;
+				float temp_ey = ey + current_speed;
 
-					if (!(x >= Obstacles[i].ex || ex <= Obstacles[i].x
-						|| temp_y >= Obstacles[i].ey || temp_ey <= Obstacles[i].y))
-					{
-						SetObstacleFlag(down_obst_flag);
-						break;
-					}
+				if (!(x > Obstacles[i].ex || ex < Obstacles[i].x
+					|| temp_y > Obstacles[i].ey || temp_ey < Obstacles[i].y))
+				{
+					SetObstacleFlag(down_obst_flag);
+					break;
 				}
 			}
-			else SetObstacleFlag(down_obst_flag);
+			if (ey + current_speed >= ground) SetObstacleFlag(down_obst_flag);
 		}
 	}
 
 	if (obstacle_flag)
 	{
-		if (type_flag != hero_flag && type_flag != hero_axe_flag && type_flag != hero_club_flag && type_flag != hero_sword_flag)
+		switch (obstacle_flag)
 		{
-			switch (obstacle_flag)
+		case left_obst_flag:
+			SetLineInfo(scr_width, y);
+			break;
+
+		case right_obst_flag:
+			SetLineInfo(0, y);
+			break;
+
+		case up_obst_flag:
+			SetLineInfo(x, ground);
+			break;
+
+		case down_obst_flag:
+			SetLineInfo(x, sky);
+			break;
+
+		case up_left_obst_flag:
+			SetLineInfo(scr_width, ground);
+			break;
+
+		case up_right_obst_flag:
+			SetLineInfo(0, ground);
+			break;
+
+		case down_left_obst_flag:
+			SetLineInfo(scr_width, sky);
+			break;
+
+		case down_right_obst_flag:
+			SetLineInfo(0, sky);
+			break;
+		}
+	}
+	
+	if(!hor_line && !vert_line)
+	{
+		if (start_x < end_x)
+		{
+			if (ex + current_speed <= scr_width - 50.0f)
 			{
-			case left_obst_flag:
-				SetLineInfo(scr_width, y);
-				break;
-
-			case right_obst_flag:
-				SetLineInfo(0, y);
-				break;
-
-			case up_obst_flag:
-				SetLineInfo(x, ground);
-				break;
-
-			case down_obst_flag:
-				SetLineInfo(x, sky);
-				break;
-
-			case up_left_obst_flag:
-				SetLineInfo(scr_width, ground);
-				break;
-
-			case up_right_obst_flag:
-				SetLineInfo(0, ground);
-				break;
-
-			case down_left_obst_flag:
-				SetLineInfo(scr_width, sky);
-				break;
-
-			case down_right_obst_flag:
-				SetLineInfo(0, sky);
-				break;
+				x += current_speed;
+				y = x * slope + intercept;
+				SetEdges();
 			}
-
-			if (start_x < end_x)x -= current_speed;
-			else if (start_x > end_x)x += current_speed;
-			y = x * slope + intercept;
-			SetEdges();
+		}
+		else if (start_x > end_x)
+		{
+			if (x - current_speed >= 50.0f)
+			{
+				x -= current_speed;
+				y = x * slope + intercept;
+				SetEdges();
+			}
 		}
 	}
 	else
 	{
-		if (type_flag == hero_flag || type_flag == hero_axe_flag || type_flag == hero_club_flag || type_flag == hero_sword_flag)
+		if (hor_line)
 		{
-			if (start_x < end_x)x -= current_speed;
-			else if (start_x > end_x)x += current_speed;
-			y = x * slope + intercept;
-			SetEdges();
+			if (start_x > end_x)
+			{
+				dir = dirs::left;
+				if (x - current_speed >= 50.0f)
+				{
+					x -= current_speed;
+					SetEdges();
+				}
+			}
+			else if (start_x < end_x)
+			{
+				dir = dirs::right;
+				if (ex + current_speed <= scr_width - 50.0f)
+				{
+					x += current_speed;
+					SetEdges();
+				}
+			}
 		}
+		if (vert_line)
+		{
+			if (start_y > end_y)
+			{
+				if (y - current_speed >= sky)
+				{
+					y -= current_speed;
+					SetEdges();
+				}
+			}
+			else if (start_y < end_y)
+			{
+				if (ey + current_speed <= ground - 50.0f)
+				{
+					y += current_speed;
+					SetEdges();
+				}
+			}
+		}
+	}
+
+	if (x < 50.0f)
+	{
+		x = 50.0f;
+		SetEdges();
+	}
+	if (ex > scr_width)
+	{
+		x = scr_width - 50.0f;
+		SetEdges();
+	}
+	if (y < sky)
+	{
+		y = sky;
+		SetEdges();
+	}
+	if (ey > ground)
+	{
+		y = ground - 50.0f;
+		SetEdges();
 	}
 
 	return obstacle_flag;
