@@ -164,6 +164,10 @@ void dll::BASE_ASSETS_CLASS::Release()
 {
 	delete this;
 }
+int16_t dll::BASE_ASSETS_CLASS::GetType() const
+{
+	return type_flag;
+}
 bool dll::BASE_ASSETS_CLASS::CheckFlag(int16_t which_flag) const
 {
 	return (type_flag & which_flag);
@@ -266,6 +270,18 @@ int dll::BASE_CREATURE_CLASS::GetFrame()
 			frame_delay = 10;
 			break;
 
+		case hero_club_flag:
+			frame_delay = 10;
+			break;
+
+		case hero_axe_flag:
+			frame_delay = 10;
+			break;
+
+		case hero_sword_flag:
+			frame_delay = 10;
+			break;
+
 		case evil1_flag:
 			frame_delay = 4;
 			break;
@@ -343,12 +359,12 @@ void dll::BASE_CREATURE_CLASS::SetLineInfo(float _end_x, float _end_y)
 	end_x = _end_x;
 	end_y = _end_y;
 	
-	if (end_x - start_x == 0)
+	if (abs(end_x - start_x) <= width)
 	{
 		vert_line = true;
 		return;
 	}
-	if (end_y - start_y == 0)
+	if (abs(end_y - start_y) <= height)
 	{
 		hor_line = true;
 		return;
@@ -371,7 +387,10 @@ unsigned char dll::BASE_CREATURE_CLASS::GetObstacleFlag() const
 {
 	return obstacle_flag;
 }
-
+unsigned char dll::BASE_CREATURE_CLASS::GetTypeFlag() const
+{
+	return type_flag;
+}
 unsigned char dll::BASE_CREATURE_CLASS::Move(float gear, PROT_CONTAINER& Obstacles, bool need_new_path,
 	float target_x, float target_y)
 {
@@ -385,15 +404,15 @@ unsigned char dll::BASE_CREATURE_CLASS::Move(float gear, PROT_CONTAINER& Obstacl
 	{
 		if (start_x > end_x)  //CHECK LEFT COLLISION 
 		{
+			float temp_x = x - current_speed;
+			float temp_ex = ex - current_speed;
+
 			for (int i = 0; i < Obstacles.size(); ++i)
 			{
-				float temp_x = x - current_speed;
-				float temp_ex = ex - current_speed;
-
 				if (!(temp_x > Obstacles[i].ex || temp_ex < Obstacles[i].x
 					|| y > Obstacles[i].ey || ey < Obstacles[i].y))
 				{
-					SetObstacleFlag(left_obst_flag);
+					if (temp_x >= Obstacles[i].x && temp_x <= Obstacles[i].ex)SetObstacleFlag(left_obst_flag);
 					break;
 				}
 			}
@@ -401,31 +420,45 @@ unsigned char dll::BASE_CREATURE_CLASS::Move(float gear, PROT_CONTAINER& Obstacl
 		}
 		else if (start_x < end_x)  //CHECK RIGHT COLLISION 
 		{
+			float temp_x = x + current_speed;
+			float temp_ex = ex + current_speed;
+
 			for (int i = 0; i < Obstacles.size(); ++i)
 			{
-				float temp_x = x + current_speed;
-				float temp_ex = ex + current_speed;
-
 				if (!(temp_x > Obstacles[i].ex || temp_ex < Obstacles[i].x
 					|| y > Obstacles[i].ey || ey < Obstacles[i].y))
 				{
-					SetObstacleFlag(right_obst_flag);
+					if (temp_ex >= Obstacles[i].x && temp_ex <= Obstacles[i].ex)SetObstacleFlag(right_obst_flag);
 					break;
 				}
 			}
 			if (ex + current_speed >= scr_width) SetObstacleFlag(right_obst_flag);
 		}
-		if (start_y > end_y)  //CHECK TOP COLLISION 
+		else
 		{
 			for (int i = 0; i < Obstacles.size(); ++i)
 			{
-				float temp_y = y - current_speed;
-				float temp_ey = ey - current_speed;
+				if (!(x > Obstacles[i].ex || ex < Obstacles[i].x
+					|| y > Obstacles[i].ey || ey < Obstacles[i].y))
+				{
+					if (x >= Obstacles[i].x && x <= Obstacles[i].ex)SetObstacleFlag(left_obst_flag);
+					if (ex >= Obstacles[i].x && ex <= Obstacles[i].ex)SetObstacleFlag(right_obst_flag);
+					break;
+				}
+			}
 
+		}
+		if (start_y > end_y)  //CHECK TOP COLLISION 
+		{
+			float temp_y = y - current_speed;
+			float temp_ey = ey - current_speed;
+
+			for (int i = 0; i < Obstacles.size(); ++i)
+			{
 				if (!(x > Obstacles[i].ex || ex < Obstacles[i].x
 					|| temp_y > Obstacles[i].ey || temp_ey < Obstacles[i].y))
 				{
-					SetObstacleFlag(up_obst_flag);
+					if (temp_y >= Obstacles[i].y && temp_y <= Obstacles[i].ey)SetObstacleFlag(up_obst_flag);
 					break;
 				}
 			}
@@ -433,19 +466,32 @@ unsigned char dll::BASE_CREATURE_CLASS::Move(float gear, PROT_CONTAINER& Obstacl
 		}
 		else if (start_y < end_y)  //CHECK BOTTOM COLLISION 
 		{
+			float temp_y = y + current_speed;
+			float temp_ey = ey + current_speed;
+
 			for (int i = 0; i < Obstacles.size(); ++i)
 			{
-				float temp_y = y + current_speed;
-				float temp_ey = ey + current_speed;
-
 				if (!(x > Obstacles[i].ex || ex < Obstacles[i].x
 					|| temp_y > Obstacles[i].ey || temp_ey < Obstacles[i].y))
 				{
-					SetObstacleFlag(down_obst_flag);
+					if (temp_ey >= Obstacles[i].y && temp_ey <= Obstacles[i].ey)SetObstacleFlag(down_obst_flag);
 					break;
 				}
 			}
 			if (ey + current_speed >= ground) SetObstacleFlag(down_obst_flag);
+		}
+		else
+		{
+			for (int i = 0; i < Obstacles.size(); ++i)
+			{
+				if (!(x > Obstacles[i].ex || ex < Obstacles[i].x
+					|| y > Obstacles[i].ey || ey < Obstacles[i].y))
+				{
+					if (y >= Obstacles[i].y && y <= Obstacles[i].ey)SetObstacleFlag(up_obst_flag);
+					if (ey >= Obstacles[i].y && ey <= Obstacles[i].ey)SetObstacleFlag(down_obst_flag);
+					break;
+				}
+			}
 		}
 	}
 
@@ -593,21 +639,25 @@ void dll::BASE_CREATURE_CLASS::Transform(unsigned char to_what)
 	case hero_flag:
 		attack_delay = 200;
 		strenght = 10;
+		frame_delay = 10;
 		break;
 
 	case hero_club_flag:
 		attack_delay = 220;
 		strenght = 15;
+		frame_delay = 10;
 		break;
 
 	case hero_axe_flag:
 		attack_delay = 250;
 		strenght = 20;
+		frame_delay = 10;
 		break;
 
 	case hero_sword_flag:
 		attack_delay = 300;
 		strenght = 30;
+		frame_delay = 10;
 		break;
 	}
 }
